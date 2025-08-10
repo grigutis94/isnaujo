@@ -41,10 +41,39 @@ export class Project {
     const { name, type, volume, configuration } = updates;
     const db = await getDB();
     
-    const result = await db.run(
-      'UPDATE projects SET name = ?, type = ?, volume = ?, configuration = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND user_id = ?',
-      [name, type, volume, JSON.stringify(configuration), projectId, userId]
-    );
+    // Build dynamic update query based on provided fields
+    const updateFields = [];
+    const updateValues = [];
+    
+    if (name !== undefined) {
+      updateFields.push('name = ?');
+      updateValues.push(name);
+    }
+    
+    if (type !== undefined) {
+      updateFields.push('type = ?');
+      updateValues.push(type);
+    }
+    
+    if (volume !== undefined) {
+      updateFields.push('volume = ?');
+      updateValues.push(volume);
+    }
+    
+    if (configuration !== undefined) {
+      updateFields.push('configuration = ?');
+      updateValues.push(JSON.stringify(configuration));
+    }
+    
+    // Always update the timestamp
+    updateFields.push('updated_at = CURRENT_TIMESTAMP');
+    
+    // Add WHERE clause parameters
+    updateValues.push(projectId, userId);
+    
+    const query = `UPDATE projects SET ${updateFields.join(', ')} WHERE id = ? AND user_id = ?`;
+    
+    const result = await db.run(query, updateValues);
     
     if (result.changes === 0) {
       return null;
