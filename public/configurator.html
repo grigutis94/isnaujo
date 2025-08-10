@@ -4,38 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Talpų konfigūratorius</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" type="text/css" />
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#0ea5e4',
-                        'primary-content': '#ffffff',
-                        secondary: '#f3f4f6',
-                        accent: '#0ea5e4',
-                        neutral: '#374151',
-                        'base-100': '#ffffff',
-                        'base-200': '#f9fafb',
-                        'base-300': '#f3f4f6',
-                        'base-content': '#1f2937',
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'system-ui', 'sans-serif'],
-                    },
-                },
-            },
-        }
-    </script>
+    <link href="output.css" rel="stylesheet" type="text/css" />
     <style>
         body {
             font-family: 'Inter', system-ui, sans-serif;
         }
         
+        #canvas-container {
+            min-height: 400px;
+            position: relative;
+        }
+        
         #canvas-container canvas {
             border-radius: 8px;
+            display: block !important;
+            width: 100% !important;
+            height: 100% !important;
         }
         
         .step-indicator {
@@ -308,7 +292,17 @@
         </div>
     </div>
 
-    <script type="module" src="main.js"></script>
+    <script type="module">
+        import * as THREE from './three.module.js';
+        
+        // Make THREE globally available for the rest of the scripts
+        window.THREE = THREE;
+        
+        console.log('✅ THREE.js ES module loaded successfully!');
+        
+        // Dispatch custom event to notify that THREE is ready
+        window.dispatchEvent(new CustomEvent('threeLoaded'));
+    </script>
     <script src="api.js"></script>
     <script>
         let currentStep = 1;
@@ -324,7 +318,310 @@
             wallThickness: 6
         };
 
-        // Initialize
+        // 3D Tank Configurator Class
+        class TankConfigurator3D {
+            constructor() {
+                this.scene = new THREE.Scene();
+                this.camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+                this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+                this.tank = null;
+                this.lights = [];
+                this.isWireframe = false;
+                
+                this.init();
+                this.createLights();
+                this.createTank();
+                this.animate();
+            }
+
+            init() {
+                const container = document.getElementById('canvas-container');
+                if (!container) return;
+
+                // Get container dimensions
+                const rect = container.getBoundingClientRect();
+                
+                // Renderer setup
+                this.renderer.setSize(rect.width, rect.height);
+                this.renderer.shadowMap.enabled = true;
+                this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+                this.renderer.setClearColor(0xf9fafb, 1);
+                
+                // Clear loading and add canvas
+                container.innerHTML = '';
+                container.appendChild(this.renderer.domElement);
+                
+                // Camera position
+                this.camera.aspect = rect.width / rect.height;
+                this.camera.updateProjectionMatrix();
+                this.camera.position.set(15, 10, 15);
+                this.camera.lookAt(0, 0, 0);
+                
+                // Scene background
+                this.scene.background = new THREE.Color(0xf9fafb);
+                
+                // Add ground
+                this.createGround();
+                
+                // Setup mouse controls
+                this.setupMouseControls();
+                
+                // Handle window resize
+                window.addEventListener('resize', () => this.onWindowResize());
+            }
+
+            createLights() {
+                // Ambient light
+                const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+                this.scene.add(ambientLight);
+                this.lights.push(ambientLight);
+                
+                // Directional light (sun)
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+                directionalLight.position.set(20, 20, 10);
+                directionalLight.castShadow = true;
+                directionalLight.shadow.mapSize.width = 2048;
+                directionalLight.shadow.mapSize.height = 2048;
+                directionalLight.shadow.camera.near = 0.1;
+                directionalLight.shadow.camera.far = 100;
+                directionalLight.shadow.camera.left = -20;
+                directionalLight.shadow.camera.right = 20;
+                directionalLight.shadow.camera.top = 20;
+                directionalLight.shadow.camera.bottom = -20;
+                this.scene.add(directionalLight);
+                this.lights.push(directionalLight);
+                
+                // Point light for extra illumination
+                const pointLight = new THREE.PointLight(0xffffff, 0.4);
+                pointLight.position.set(-15, 15, -15);
+                this.scene.add(pointLight);
+                this.lights.push(pointLight);
+            }
+
+            createGround() {
+                const groundGeometry = new THREE.PlaneGeometry(50, 50);
+                const groundMaterial = new THREE.MeshLambertMaterial({
+                    color: 0xe5e7eb,
+                    transparent: true,
+                    opacity: 0.8
+                });
+                const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+                ground.rotation.x = -Math.PI / 2;
+                ground.receiveShadow = true;
+                this.scene.add(ground);
+            }
+
+            createTank() {
+                if (this.tank) {
+                    this.scene.remove(this.tank);
+                }
+                
+                this.tank = new THREE.Group();
+                
+                const material = new THREE.MeshPhongMaterial({
+                    color: 0x0ea5e4,
+                    shininess: 30,
+                    wireframe: this.isWireframe
+                });
+                
+                let tankMesh;
+                
+                switch (tankConfig.type) {
+                    case 'vertical':
+                        tankMesh = this.createVerticalTank(material);
+                        break;
+                    case 'horizontal':
+                        tankMesh = this.createHorizontalTank(material);
+                        break;
+                    case 'spherical':
+                        tankMesh = this.createSphericalTank(material);
+                        break;
+                    default:
+                        tankMesh = this.createVerticalTank(material);
+                }
+                
+                tankMesh.castShadow = true;
+                tankMesh.receiveShadow = true;
+                this.tank.add(tankMesh);
+                
+                // Add to scene
+                this.scene.add(this.tank);
+            }
+
+            createVerticalTank(material) {
+                const radius = tankConfig.diameter / 2;
+                const height = tankConfig.height;
+                const geometry = new THREE.CylinderGeometry(radius, radius, height, 32);
+                const mesh = new THREE.Mesh(geometry, material);
+                mesh.position.y = height / 2;
+                return mesh;
+            }
+
+            createHorizontalTank(material) {
+                const geometry = new THREE.BoxGeometry(
+                    tankConfig.length, 
+                    tankConfig.height2, 
+                    tankConfig.width
+                );
+                const mesh = new THREE.Mesh(geometry, material);
+                mesh.position.y = tankConfig.height2 / 2;
+                return mesh;
+            }
+
+            createSphericalTank(material) {
+                const radius = tankConfig.sphereDiameter / 2;
+                const geometry = new THREE.SphereGeometry(radius, 32, 16);
+                const mesh = new THREE.Mesh(geometry, material);
+                mesh.position.y = radius;
+                return mesh;
+            }
+
+            setupMouseControls() {
+                let isMouseDown = false;
+                let mouseX = 0;
+                let mouseY = 0;
+                let isShiftPressed = false;
+                const rotationSpeed = 0.005;
+                const panSpeed = 0.1;
+                
+                // Track shift key
+                window.addEventListener('keydown', (e) => {
+                    if (e.key === 'Shift') isShiftPressed = true;
+                });
+                
+                window.addEventListener('keyup', (e) => {
+                    if (e.key === 'Shift') isShiftPressed = false;
+                });
+                
+                this.renderer.domElement.addEventListener('mousedown', (e) => {
+                    isMouseDown = true;
+                    mouseX = e.clientX;
+                    mouseY = e.clientY;
+                });
+                
+                window.addEventListener('mouseup', () => {
+                    isMouseDown = false;
+                });
+                
+                this.renderer.domElement.addEventListener('mousemove', (e) => {
+                    if (!isMouseDown) return;
+                    
+                    const deltaX = e.clientX - mouseX;
+                    const deltaY = e.clientY - mouseY;
+                    
+                    if (isShiftPressed) {
+                        // Pan camera
+                        const vector = new THREE.Vector3();
+                        vector.setFromMatrixColumn(this.camera.matrix, 0);
+                        vector.multiplyScalar(-deltaX * panSpeed * 0.01);
+                        this.camera.position.add(vector);
+                        
+                        vector.setFromMatrixColumn(this.camera.matrix, 1);
+                        vector.multiplyScalar(deltaY * panSpeed * 0.01);
+                        this.camera.position.add(vector);
+                    } else {
+                        // Rotate camera around origin
+                        const spherical = new THREE.Spherical();
+                        spherical.setFromVector3(this.camera.position);
+                        spherical.theta -= deltaX * rotationSpeed;
+                        spherical.phi += deltaY * rotationSpeed;
+                        spherical.phi = Math.max(0.1, Math.min(Math.PI - 0.1, spherical.phi));
+                        
+                        this.camera.position.setFromSpherical(spherical);
+                        this.camera.lookAt(0, 0, 0);
+                    }
+                    
+                    mouseX = e.clientX;
+                    mouseY = e.clientY;
+                });
+                
+                // Mouse wheel for zoom
+                this.renderer.domElement.addEventListener('wheel', (e) => {
+                    e.preventDefault();
+                    const zoomSpeed = 0.1;
+                    const direction = this.camera.position.clone().normalize();
+                    
+                    if (e.deltaY > 0 && this.camera.position.length() < 100) {
+                        this.camera.position.add(direction.multiplyScalar(zoomSpeed));
+                    } else if (e.deltaY < 0 && this.camera.position.length() > 2) {
+                        this.camera.position.sub(direction.multiplyScalar(zoomSpeed));
+                    }
+                });
+            }
+
+            updateTank(config) {
+                // Update global config
+                Object.assign(tankConfig, config);
+                this.createTank();
+            }
+
+            resetCamera() {
+                this.camera.position.set(15, 10, 15);
+                this.camera.lookAt(0, 0, 0);
+            }
+
+            toggleWireframe() {
+                this.isWireframe = !this.isWireframe;
+                this.createTank();
+            }
+
+            onWindowResize() {
+                const container = document.getElementById('canvas-container');
+                if (!container) return;
+                
+                const rect = container.getBoundingClientRect();
+                this.camera.aspect = rect.width / rect.height;
+                this.camera.updateProjectionMatrix();
+                this.renderer.setSize(rect.width, rect.height);
+            }
+
+            animate() {
+                requestAnimationFrame(() => this.animate());
+                this.renderer.render(this.scene, this.camera);
+            }
+        }
+
+        // Initialize 3D configurator when THREE is loaded
+        let configurator3D = null;
+        
+        window.addEventListener('threeLoaded', () => {
+            console.log('🚀 THREE.js loaded, initializing 3D configurator...');
+            
+            try {
+                configurator3D = new TankConfigurator3D();
+                console.log('✅ 3D Configurator created successfully');
+                
+                // Make functions available globally
+                window.updateTank3D = (config) => {
+                    if (configurator3D) {
+                        configurator3D.updateTank(config);
+                    }
+                };
+                
+                window.resetCamera3D = () => {
+                    if (configurator3D) {
+                        configurator3D.resetCamera();
+                    }
+                };
+                
+                window.toggleWireframe3D = () => {
+                    if (configurator3D) {
+                        configurator3D.toggleWireframe();
+                    }
+                };
+                
+                // Initial tank creation
+                setTimeout(() => {
+                    if (configurator3D) {
+                        configurator3D.updateTank(tankConfig);
+                    }
+                }, 100);
+            } catch (error) {
+                console.error('❌ Error initializing 3D configurator:', error);
+            }
+        });
+
+        // Initialize page
         window.addEventListener('DOMContentLoaded', function() {
             checkAuth();
             loadProject();
@@ -351,11 +648,24 @@
             const project = localStorage.getItem('currentProject');
             if (project) {
                 try {
+                    console.log('🔍 Loading project from localStorage:', project);
                     currentProject = JSON.parse(project);
+                    
+                    // Validate project structure
+                    if (!currentProject || typeof currentProject !== 'object') {
+                        throw new Error('Invalid project structure');
+                    }
+                    
+                    console.log('✅ Project loaded successfully:', currentProject);
+                    
                     document.getElementById('projectTitle').textContent = currentProject.name || 'Naujas projektas';
                     
-                    // Load configuration if available
-                    if (currentProject.configuration && Object.keys(currentProject.configuration).length > 0) {
+                    // Load configuration if available and valid
+                    if (currentProject.configuration && 
+                        typeof currentProject.configuration === 'object' && 
+                        Object.keys(currentProject.configuration).length > 0) {
+                        
+                        console.log('🔧 Loading project configuration:', currentProject.configuration);
                         tankConfig = { ...tankConfig, ...currentProject.configuration };
                         
                         // Update form fields
@@ -364,13 +674,34 @@
                     
                     // Set tank type if available
                     if (currentProject.type) {
+                        console.log('🏗️ Setting tank type:', currentProject.type);
                         tankConfig.type = currentProject.type;
-                        document.querySelector(`input[value="${currentProject.type}"]`).checked = true;
-                        updateTankType();
+                        
+                        // Check if radio button exists before setting
+                        const radioButton = document.querySelector(`input[value="${currentProject.type}"]`);
+                        if (radioButton) {
+                            radioButton.checked = true;
+                            updateTankType();
+                        } else {
+                            console.warn('⚠️ Tank type radio button not found for:', currentProject.type);
+                        }
                     }
                 } catch (e) {
-                    console.error('Invalid project data');
+                    console.error('❌ Invalid project data:', e);
+                    console.log('🧹 Clearing invalid project data from localStorage');
+                    
+                    // Clear invalid data from localStorage
+                    localStorage.removeItem('currentProject');
+                    currentProject = null;
+                    
+                    // Show user-friendly message
+                    showToast('Nepavyko užkrauti projekto duomenų. Pradėsime naują projektą.', 'warning');
+                    
+                    // Reset to default state
+                    document.getElementById('projectTitle').textContent = 'Naujas projektas';
                 }
+            } else {
+                console.log('ℹ️ No project data in localStorage');
             }
         }
 
@@ -392,13 +723,22 @@
             document.getElementById('wallThickness').value = tankConfig.wallThickness;
         }
 
-        function updateTankType() {
+        function updateTankType(event) {
             const type = document.querySelector('input[name="tankType"]:checked').value;
             tankConfig.type = type;
             
-            // Update visual selection
-            document.querySelectorAll('.tank-type-card').forEach(card => card.classList.remove('active'));
-            event.target.closest('label').querySelector('.tank-type-card').classList.add('active');
+            // Update visual selection - only if event is provided (user interaction)
+            if (event && event.target) {
+                document.querySelectorAll('.tank-type-card').forEach(card => card.classList.remove('active'));
+                event.target.closest('label').querySelector('.tank-type-card').classList.add('active');
+            } else {
+                // Fallback for programmatic calls - find the checked input and update its visual
+                const checkedInput = document.querySelector('input[name="tankType"]:checked');
+                if (checkedInput) {
+                    document.querySelectorAll('.tank-type-card').forEach(card => card.classList.remove('active'));
+                    checkedInput.closest('label').querySelector('.tank-type-card').classList.add('active');
+                }
+            }
             
             // Show/hide appropriate dimension forms
             document.querySelectorAll('.dimensions-form').forEach(form => form.classList.add('hidden'));

@@ -96,6 +96,7 @@ Thumbs.db
 
 # Generated assets
 public/output.css
+public/three.module.js
 
 # Temporary files
 temp/

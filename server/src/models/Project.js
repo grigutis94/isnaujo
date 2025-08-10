@@ -14,7 +14,47 @@ export class Project {
       [result.lastID]
     );
     
+    // Parse configuration JSON
+    if (project && project.configuration) {
+      try {
+        project.configuration = JSON.parse(project.configuration);
+      } catch (e) {
+        project.configuration = {};
+      }
+    }
+    
     return project;
+  }
+
+  // Helper function to safely parse configuration
+  static parseConfiguration(configString) {
+    if (!configString) return {};
+    
+    try {
+      // First, try normal JSON parse
+      const parsed = JSON.parse(configString);
+      
+      // Check if the result is an object with numeric keys (indicates double stringify)
+      if (parsed && typeof parsed === 'object' && Object.keys(parsed).every(key => !isNaN(key))) {
+        console.log('⚠️ Detected corrupted configuration, attempting to fix...');
+        
+        // Reconstruct the original string from indexed object
+        const reconstructed = Object.keys(parsed)
+          .sort((a, b) => parseInt(a) - parseInt(b))
+          .map(key => parsed[key])
+          .join('');
+        
+        console.log('🔧 Reconstructed string:', reconstructed);
+        
+        // Try to parse the reconstructed string
+        return JSON.parse(reconstructed);
+      }
+      
+      return parsed;
+    } catch (e) {
+      console.error('❌ Failed to parse configuration:', e);
+      return {};
+    }
   }
 
   static async findByUserId(userId) {
@@ -24,7 +64,11 @@ export class Project {
       [userId]
     );
     
-    return projects;
+    // Parse configuration JSON for each project
+    return projects.map(project => {
+      project.configuration = this.parseConfiguration(project.configuration);
+      return project;
+    });
   }
 
   static async findById(projectId, userId) {
@@ -33,6 +77,11 @@ export class Project {
       'SELECT * FROM projects WHERE id = ? AND user_id = ?',
       [projectId, userId]
     );
+    
+    // Parse configuration JSON
+    if (project) {
+      project.configuration = this.parseConfiguration(project.configuration);
+    }
     
     return project;
   }
@@ -85,6 +134,15 @@ export class Project {
       [projectId, userId]
     );
     
+    // Parse configuration JSON
+    if (project && project.configuration) {
+      try {
+        project.configuration = JSON.parse(project.configuration);
+      } catch (e) {
+        project.configuration = {};
+      }
+    }
+    
     return project;
   }
 
@@ -116,7 +174,7 @@ export class Project {
 
     const result = await db.run(
       'INSERT INTO projects (user_id, name, type, volume, configuration) VALUES (?, ?, ?, ?, ?)',
-      [userId, newName, original.type, original.volume, original.configuration]
+      [userId, newName, original.type, original.volume, JSON.stringify(original.configuration)]
     );
     
     // Get the duplicated project
@@ -124,6 +182,15 @@ export class Project {
       'SELECT * FROM projects WHERE id = ?',
       [result.lastID]
     );
+    
+    // Parse configuration JSON
+    if (project && project.configuration) {
+      try {
+        project.configuration = JSON.parse(project.configuration);
+      } catch (e) {
+        project.configuration = {};
+      }
+    }
     
     return project;
   }
