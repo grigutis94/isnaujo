@@ -116,7 +116,6 @@
                     <input type="text" id="projectName" placeholder="Pvz: Rezervuaras 50m³" 
                            class="input input-bordered" required>
                 </div>
-
                 
                 <div class="modal-action">
                     <button type="button" class="btn btn-ghost" onclick="closeModal('newProjectModal')">
@@ -262,8 +261,6 @@
             e.preventDefault();
             
             const name = document.getElementById('projectName').value;
-            const type = document.getElementById('tankType').value;
-            // const volume = parseFloat(document.getElementById('projectVolume').value);
             
             // Reset messages
             document.getElementById('newProjectError').classList.add('hidden');
@@ -274,8 +271,7 @@
             try {
                 const response = await projectsAPI.createProject({
                     name,
-                    type,
-                    // volume,
+                    volume: 0, // Default volume, as it's no longer in the form
                     configuration: {}
                 });
                 
@@ -373,7 +369,6 @@
                 </div>
             `;
             document.body.appendChild(toast);
-            
             setTimeout(() => {
                 toast.remove();
             }, 3000);

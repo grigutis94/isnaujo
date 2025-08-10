@@ -1,7 +1,7 @@
 import { getDB } from '../database/db.js';
 
 export class Project {
-  static async create({ userId, name, type, volume, configuration }) {
+  static async create({ userId, name, type = 'vertical', volume = 0, configuration }) {
     const db = await getDB();
     const result = await db.run(
       'INSERT INTO projects (user_id, name, type, volume, configuration) VALUES (?, ?, ?, ?, ?)',

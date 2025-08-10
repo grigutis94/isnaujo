@@ -2,9 +2,7 @@ import { body, validationResult } from 'express-validator';
 import { Project } from '../models/Project.js';
 
 export const projectValidation = [
-  body('name').trim().isLength({ min: 1, max: 255 }).withMessage('Pavadinimas privalomas (1-255 simboliai)'),
-  body('type').isIn(['vertical', 'horizontal', 'spherical']).withMessage('Neteisingas talpos tipas'),
-  body('volume').optional().isFloat({ min: 0.1 }).withMessage('Tūris turi būti teigiamas skaičius')
+  body('name').trim().isLength({ min: 1, max: 255 }).withMessage('Pavadinimas privalomas (1-255 simboliai)')
 ];
 
 export const getProjects = async (req, res) => {
@@ -17,8 +15,8 @@ export const getProjects = async (req, res) => {
       name: project.name,
       type: project.type,
       volume: parseFloat(project.volume) || 0,
-      created: project.created_at.toISOString().split('T')[0],
-      modified: project.updated_at.toISOString().split('T')[0],
+      created: new Date(project.created_at).toISOString().split('T')[0],
+      modified: new Date(project.updated_at).toISOString().split('T')[0],
       configuration: project.configuration
     }));
 
@@ -39,13 +37,11 @@ export const createProject = async (req, res) => {
       });
     }
 
-    const { name, type, volume, configuration = {} } = req.body;
+    const { name, configuration = {} } = req.body;
 
     const project = await Project.create({
       userId: req.user.id,
       name,
-      type,
-      volume,
       configuration
     });
 
@@ -56,8 +52,8 @@ export const createProject = async (req, res) => {
         name: project.name,
         type: project.type,
         volume: parseFloat(project.volume) || 0,
-        created: project.created_at.toISOString().split('T')[0],
-        modified: project.updated_at.toISOString().split('T')[0],
+        created: new Date(project.created_at).toISOString().split('T')[0],
+        modified: new Date(project.updated_at).toISOString().split('T')[0],
         configuration: project.configuration
       }
     });
@@ -82,8 +78,8 @@ export const getProject = async (req, res) => {
         name: project.name,
         type: project.type,
         volume: parseFloat(project.volume) || 0,
-        created: project.created_at.toISOString().split('T')[0],
-        modified: project.updated_at.toISOString().split('T')[0],
+        created: new Date(project.created_at).toISOString().split('T')[0],
+        modified: new Date(project.updated_at).toISOString().split('T')[0],
         configuration: project.configuration
       }
     });
@@ -104,12 +100,10 @@ export const updateProject = async (req, res) => {
     }
 
     const { id } = req.params;
-    const { name, type, volume, configuration } = req.body;
+    const { name, configuration } = req.body;
 
     const project = await Project.update(id, req.user.id, {
       name,
-      type,
-      volume,
       configuration
     });
 
@@ -124,8 +118,8 @@ export const updateProject = async (req, res) => {
         name: project.name,
         type: project.type,
         volume: parseFloat(project.volume) || 0,
-        created: project.created_at.toISOString().split('T')[0],
-        modified: project.updated_at.toISOString().split('T')[0],
+        created: new Date(project.created_at).toISOString().split('T')[0],
+        modified: new Date(project.updated_at).toISOString().split('T')[0],
         configuration: project.configuration
       }
     });
@@ -173,8 +167,8 @@ export const duplicateProject = async (req, res) => {
         name: project.name,
         type: project.type,
         volume: parseFloat(project.volume) || 0,
-        created: project.created_at.toISOString().split('T')[0],
-        modified: project.updated_at.toISOString().split('T')[0],
+        created: new Date(project.created_at).toISOString().split('T')[0],
+        modified: new Date(project.updated_at).toISOString().split('T')[0],
         configuration: project.configuration
       }
     });
