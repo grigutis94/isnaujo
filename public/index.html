@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="lt" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Tank Configurator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0ea5e4',
+                        'primary-content': '#ffffff',
+                        secondary: '#f3f4f6',
+                        accent: '#0ea5e4',
+                        neutral: '#374151',
+                        'base-100': '#ffffff',
+                        'base-200': '#f9fafb',
+                        'base-300': '#f3f4f6',
+                        'base-content': '#1f2937',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-base-100 text-base-content min-h-screen">
+    <!-- Navbar -->
+    <div class="navbar bg-base-100 shadow-sm border-b border-base-300 sticky top-0 z-50">
+        <div class="navbar-start">
+            <div class="text-xl font-bold text-primary">
+                🏭 Tank Configurator
+            </div>
+        </div>
+        <div class="navbar-end">
+            <div class="flex gap-2">
+                <button class="btn btn-ghost btn-sm" onclick="openModal('loginModal')">
+                    Prisijungti
+                </button>
+                <button class="btn btn-primary btn-sm" onclick="openModal('registerModal')">
+                    Registruotis
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <div class="hero min-h-[80vh] bg-gradient-to-br from-base-100 to-base-200">
+        <div class="hero-content text-center">
+            <div class="max-w-4xl">
+                <h1 class="text-5xl font-bold text-base-content mb-6">
+                    Profesionalus 3D 
+                    <span class="text-primary">Tank Configurator</span>
+                </h1>
+                <p class="text-xl text-base-content/80 mb-8 max-w-2xl mx-auto">
+                    Sukurkite ir konfigūruokite metalines talpas su pažangiu 3D vizualizatoriumi. 
+                    Gaukite techninius brėžinius, CAD failus ir komponentų sąrašus.
+                </p>
+                <button class="btn btn-primary btn-lg" onclick="startConfigurator()">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"></svg>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                    Pradėti konfigūravimą
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="py-20 bg-base-100">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl font-bold text-base-content mb-4">Pagrindinės galimybės</h2>
+                <p class="text-lg text-base-content/70 max-w-2xl mx-auto">
+                    Profesionalus įrankis inžinieriams ir pardavimo specialistams
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Feature 1 -->
+                <div class="card bg-base-100 shadow-lg border border-base-300 hover:shadow-xl transition-shadow">
+                    <div class="card-body text-center">
+                        <div class="text-4xl mb-4">🎨</div>
+                        <h3 class="card-title justify-center text-base-content">Spalvų keitimas</h3>
+                        <p class="text-base-content/70">
+                            Keiskite tanko spalvas ir kamufliažo schemas pagal savo poreikius
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Feature 2 -->
+                <div class="card bg-base-100 shadow-lg border border-base-300 hover:shadow-xl transition-shadow">
+                    <div class="card-body text-center">
+                        <div class="text-4xl mb-4">⚙️</div>
+                        <h3 class="card-title justify-center text-base-content">Modulinis dizainas</h3>
+                        <p class="text-base-content/70">
+                            Keiskite tanko dalis - bokštus, ginkluotę ir korpuso elementus
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="card bg-base-100 shadow-lg border border-base-300 hover:shadow-xl transition-shadow">
+                    <div class="card-body text-center">
+                        <div class="text-4xl mb-4">🔄</div>
+                        <h3 class="card-title justify-center text-base-content">360° peržiūra</h3>
+                        <p class="text-base-content/70">
+                            Apžiūrėkite savo tanką iš visų pusių su interaktyvia 3D aplinka
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Feature 4 -->
+                <div class="card bg-base-100 shadow-lg border border-base-300 hover:shadow-xl transition-shadow">
+                    <div class="card-body text-center">
+                        <div class="text-4xl mb-4">💾</div>
+                        <h3 class="card-title justify-center text-base-content">CAD eksportas</h3>
+                        <p class="text-base-content/70">
+                            Išsaugokite techninius brėžinius PDF, DXF, STEP formatais
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Feature 5 -->
+                <div class="card bg-base-100 shadow-lg border border-base-300 hover:shadow-xl transition-shadow">
+                    <div class="card-body text-center">
+                        <div class="text-4xl mb-4">📊</div>
+                        <h3 class="card-title justify-center text-base-content">BOM generavimas</h3>
+                        <p class="text-base-content/70">
+                            Automatinis komponentų sąrašas su medžiagomis ir svoriu
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Feature 6 -->
+                <div class="card bg-base-100 shadow-lg border border-base-300 hover:shadow-xl transition-shadow">
+                    <div class="card-body text-center">
+                        <div class="text-4xl mb-4">🎯</div>
+                        <h3 class="card-title justify-center text-base-content">Standartų atitiktis</h3>
+                        <p class="text-base-content/70">
+                            Automatinis tikrinimas pagal EN, ISO, ASME standartus
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <dialog id="loginModal" class="modal">
+        <div class="modal-box bg-base-100 border border-base-300">
+            <form method="dialog">
+                <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+            </form>
+            <h3 class="font-bold text-lg text-primary mb-6">Prisijungimas</h3>
+            
+            <!-- Error message for login -->
+            <div id="loginError" class="alert alert-error mb-4 hidden">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.694-.833-2.464 0L4.35 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                </svg>
+                <span id="loginErrorText"></span>
+            </div>
+            
+            <form id="loginForm" class="space-y-4">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">El. paštas</span>
+                    </label>
+                    <input type="email" id="loginEmail" name="email" placeholder="your@email.com" 
+                           class="input input-bordered bg-base-100" required>
+                </div>
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Slaptažodis</span>
+                    </label>
+                    <input type="password" id="loginPassword" name="password" placeholder="Jūsų slaptažodis" 
+                           class="input input-bordered bg-base-100" required>
+                </div>
+                <div class="form-control mt-6">
+                    <button type="submit" class="btn btn-primary" id="loginSubmitBtn">
+                        <span class="loading loading-spinner loading-sm hidden" id="loginSpinner"></span>
+                        Prisijungti
+                    </button>
+                </div>
+            </form>
+            <div class="text-center mt-4">
+                <span class="text-base-content/70">Neturite paskyros? </span>
+                <button class="link link-primary" onclick="switchModal('loginModal', 'registerModal')">
+                    Registruokitės
+                </button>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button>close</button>
+        </form>
+    </dialog>
+
+    <!-- Register Modal -->
+    <dialog id="registerModal" class="modal">
+        <div class="modal-box bg-base-100 border border-base-300">
+            <form method="dialog">
+                <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+            </form>
+            <h3 class="font-bold text-lg text-primary mb-6">Registracija</h3>
+            
+            <!-- Error message for registration -->
+            <div id="registerError" class="alert alert-error mb-4 hidden">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.694-.833-2.464 0L4.35 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                </svg>
+                <span id="registerErrorText"></span>
+            </div>
+            
+            <!-- Success message for registration -->
+            <div id="registerSuccess" class="alert alert-success mb-4 hidden">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span id="registerSuccessText"></span>
+            </div>
+            
+            <form id="registerForm" class="space-y-4">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Vardas</span>
+                    </label>
+                    <input type="text" id="registerName" name="name" placeholder="Jūsų vardas" 
+                           class="input input-bordered bg-base-100" required>
+                </div>
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">El. paštas</span>
+                    </label>
+                    <input type="email" id="registerEmail" name="email" placeholder="your@email.com" 
+                           class="input input-bordered bg-base-100" required>
+                </div>
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Slaptažodis</span>
+                    </label>
+                    <input type="password" id="registerPassword" name="password" placeholder="Sukurkite slaptažodį" 
+                           class="input input-bordered bg-base-100" required>
+                </div>
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Pakartokite slaptažodį</span>
+                    </label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Pakartokite slaptažodį" 
+                           class="input input-bordered bg-base-100" required>
+                </div>
+                <div class="form-control mt-6">
+                    <button type="submit" class="btn btn-primary" id="registerSubmitBtn">
+                        <span class="loading loading-spinner loading-sm hidden" id="registerSpinner"></span>
+                        Registruotis
+                    </button>
+                </div>
+            </form>
+            <div class="text-center mt-4">
+                <span class="text-base-content/70">Jau turite paskyrą? </span>
+                <button class="link link-primary" onclick="switchModal('registerModal', 'loginModal')">
+                    Prisijunkite
+                </button>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button>close</button>
+        </form>
+    </dialog>
+
+    <!-- Footer -->
+    <footer class="footer footer-center p-10 bg-base-200 text-base-content">
+        <aside>
+            <p class="font-bold text-lg">3D Tank Configurator</p>
+            <p class="text-base-content/70">Profesionalus sprendimas metalinių talpų projektavimui</p>
+            <p class="text-sm text-base-content/60">&copy; 2025 Visos teisės saugomos</p>
+        </aside>
+    </footer>
+
+    <script src="api.js"></script>
+    <script>
+        // Modal functionality
+        function openModal(modalId) {
+            document.getElementById(modalId).showModal();
+            // Clear any previous errors when opening modal
+            hideError('loginError');
+            hideError('registerError');
+            hideSuccess('registerSuccess');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).close();
+        }
+
+        function switchModal(currentModal, targetModal) {
+            closeModal(currentModal);
+            openModal(targetModal);
+        }
+
+        // Error/Success message helpers
+        function showError(elementId, message) {
+            const errorElement = document.getElementById(elementId);
+            const textElement = document.getElementById(elementId.replace('Error', 'ErrorText'));
+            textElement.textContent = message;
+            errorElement.classList.remove('hidden');
+        }
+
+        function hideError(elementId) {
+            document.getElementById(elementId).classList.add('hidden');
+        }
+
+        function showSuccess(elementId, message) {
+            const successElement = document.getElementById(elementId);
+            const textElement = document.getElementById(elementId.replace('Success', 'SuccessText'));
+            textElement.textContent = message;
+            successElement.classList.remove('hidden');
+        }
+
+        function hideSuccess(elementId) {
+            document.getElementById(elementId).classList.add('hidden');
+        }
+
+        function setLoading(buttonId, spinnerId, isLoading) {
+            const button = document.getElementById(buttonId);
+            const spinner = document.getElementById(spinnerId);
+            
+            if (isLoading) {
+                button.disabled = true;
+                spinner.classList.remove('hidden');
+            } else {
+                button.disabled = false;
+                spinner.classList.add('hidden');
+            }
+        }
+
+        // Form handlers with real API and inline error display
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            hideError('loginError');
+            setLoading('loginSubmitBtn', 'loginSpinner', true);
+            
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            try {
+                const response = await authAPI.login({ email, password });
+                
+                // Success - close modal and redirect
+                closeModal('loginModal');
+                showToast(response.message || 'Prisijungimas sėkmingas!', 'success');
+                
+                setTimeout(() => {
+                    startConfigurator();
+                }, 1000);
+            } catch (error) {
+                // Show error in modal
+                showError('loginError', error.message || 'Prisijungimo klaida. Patikrinkite duomenis.');
+            } finally {
+                setLoading('loginSubmitBtn', 'loginSpinner', false);
+            }
+        });
+
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            hideError('registerError');
+            hideSuccess('registerSuccess');
+            setLoading('registerSubmitBtn', 'registerSpinner', true);
+            
+            const name = document.getElementById('registerName').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            // Client-side validation
+            if (password !== confirmPassword) {
+                showError('registerError', 'Slaptažodžiai nesutampa!');
+                setLoading('registerSubmitBtn', 'registerSpinner', false);
+                return;
+            }
+            
+            if (password.length < 6) {
+                showError('registerError', 'Slaptažodis turi būti mažiausiai 6 simbolių ilgio!');
+                setLoading('registerSubmitBtn', 'registerSpinner', false);
+                return;
+            }
+            
+            try {
+                const response = await authAPI.register({ name, email, password });
+                
+                // Show success message in modal
+                showSuccess('registerSuccess', response.message || 'Registracija sėkminga! Nukreipiame į projektų valdymo puslapį...');
+                
+                // Clear form
+                document.getElementById('registerForm').reset();
+                
+                // Redirect after delay
+                setTimeout(() => {
+                    closeModal('registerModal');
+                    startConfigurator();
+                }, 2000);
+            } catch (error) {
+                // Show error in modal
+                showError('registerError', error.message || 'Registracijos klaida. Bandykite dar kartą.');
+            } finally {
+                setLoading('registerSubmitBtn', 'registerSpinner', false);
+            }
+        });
+
+        function startConfigurator() {
+            if (authAPI.isAuthenticated()) {
+                window.location.href = 'dashboard.html';
+            } else {
+                showToast('Klaida: nepavyko autentifikuoti', 'error');
+            }
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast toast-top toast-end`;
+            toast.innerHTML = `
+                <div class="alert alert-${type === 'error' ? 'error' : type === 'success' ? 'success' : 'info'}">
+                    <span>${message}</span>
+                </div>
+            `;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        // Check if already logged in
+        window.addEventListener('DOMContentLoaded', async function() {
+            if (authAPI.isAuthenticated()) {
+                try {
+                    const response = await authAPI.getCurrentUser();
+                    showToast(`Sveiki sugrįžę, ${response.user.name}!`, 'info');
+                    
+                    // Update navbar to show logged in state
+                    const navbarEnd = document.querySelector('.navbar-end');
+                    navbarEnd.innerHTML = `
+                        <div class="flex gap-2">
+                            <span class="text-sm">Sveiki, ${response.user.name}</span>
+                            <button class="btn btn-ghost btn-sm" onclick="logout()">
+                                Atsijungti
+                            </button>
+                            <button class="btn btn-primary btn-sm" onclick="startConfigurator()">
+                                Į projektus
+                            </button>
+                        </div>
+                    `;
+                } catch (error) {
+                    console.error('Failed to get current user:', error);
+                    // Token might be invalid, clear it
+                    await authAPI.logout();
+                }
+            }
+        });
+
+        async function logout() {
+            try {
+                await authAPI.logout();
+                showToast('Atsijungimas sėkmingas', 'info');
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            } catch (error) {
+                console.error('Logout error:', error);
+                showToast('Atsijungimo klaida', 'error');
+            }
+        }
+    </script>
+</body>
+</html>

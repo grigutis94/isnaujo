@@ -1,0 +1,37 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom components */
+@layer components {
+  .btn-primary {
+    @apply bg-primary hover:bg-primary/90 text-primary-content border-primary;
+  }
+  
+  .card-bordered {
+    @apply border border-base-300 bg-base-100 shadow-sm;
+  }
+  
+  .form-control-custom {
+    @apply w-full max-w-xs;
+  }
+}
+
+/* Typography improvements */
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  
+  h1 {
+    @apply text-3xl font-bold text-base-content;
+  }
+  
+  h2 {
+    @apply text-xl font-semibold text-base-content;
+  }
+  
+  h3 {
+    @apply text-lg font-medium text-base-content;
+  }
+}

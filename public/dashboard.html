@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="lt" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Talpų konfigūratorius</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0ea5e4',
+                        'primary-content': '#ffffff',
+                        secondary: '#f3f4f6',
+                        accent: '#0ea5e4',
+                        neutral: '#374151',
+                        'base-100': '#ffffff',
+                        'base-200': '#f9fafb',
+                        'base-300': '#f3f4f6',
+                        'base-content': '#1f2937',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-base-200 text-base-content min-h-screen">
+    <!-- Header -->
+    <div class="navbar bg-base-100 shadow-sm border-b border-base-300">
+        <div class="navbar-start">
+            <div class="text-xl font-bold text-primary">
+                🏭 Talpų konfigūratorius
+            </div>
+        </div>
+        
+        <div class="navbar-end">
+            <div class="flex items-center gap-4">
+                <span class="text-sm">Sveiki, <span id="username">Vartotojas</span></span>
+                <button class="btn btn-ghost btn-sm" onclick="logout()">Atsijungti</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-6 py-8 max-w-6xl">
+        <!-- Header Section -->
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-2xl font-bold text-base-content">Mano talpų projektai</h1>
+                <p class="text-base-content/70">Valdykite savo talpų projektus</p>
+            </div>
+            <button class="btn btn-primary" onclick="createNewProject()">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                Nauja talpa
+            </button>
+        </div>
+
+        <!-- Projects Grid -->
+        <div id="projectsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Projects will be loaded here -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="text-center py-16 hidden">
+            <div class="text-6xl mb-4">📦</div>
+            <h3 class="text-xl font-semibold mb-2">Dar nėra projektų</h3>
+            <p class="text-base-content/70 mb-6">Sukurkite savo pirmą talpų projektą</p>
+            <button class="btn btn-primary" onclick="createNewProject()">
+                Sukurti pirmą projektą
+            </button>
+        </div>
+    </div>
+
+    <!-- New Project Modal -->
+    <dialog id="newProjectModal" class="modal">
+        <div class="modal-box bg-base-100 border border-base-300">
+            <form method="dialog">
+                <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+            </form>
+            <h3 class="font-bold text-lg text-primary mb-6">Nauja talpa</h3>
+            
+            <!-- Error message for new project -->
+            <div id="newProjectError" class="alert alert-error mb-4 hidden">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.694-.833-2.464 0L4.35 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                </svg>
+                <span id="newProjectErrorText"></span>
+            </div>
+            
+            <!-- Success message for new project -->
+            <div id="newProjectSuccess" class="alert alert-success mb-4 hidden">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span id="newProjectSuccessText"></span>
+            </div>
+            
+            <form id="newProjectForm" class="space-y-4">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Pavadinimas</span>
+                    </label>
+                    <input type="text" id="projectName" placeholder="Pvz: Rezervuaras 50m³" 
+                           class="input input-bordered" required>
+                </div>
+
+                
+                <div class="modal-action">
+                    <button type="button" class="btn btn-ghost" onclick="closeModal('newProjectModal')">
+                        Atšaukti
+                    </button>
+                    <button type="submit" class="btn btn-primary" id="newProjectSubmitBtn">
+                        <span class="loading loading-spinner loading-sm hidden" id="newProjectSpinner"></span>
+                        Sukurti
+                    </button>
+                </div>
+            </form>
+        </div>
+    </dialog>
+
+    <!-- Delete Confirmation Modal -->
+    <dialog id="deleteModal" class="modal">
+        <div class="modal-box bg-base-100 border border-base-300">
+            <h3 class="font-bold text-lg text-error mb-4">Trinti projektą</h3>
+            <p class="mb-6">Ar tikrai norite ištrinti projektą "<span id="deleteProjectName"></span>"?</p>
+            <p class="text-sm text-base-content/70 mb-6">Šis veiksmas negrįžtamas.</p>
+            
+            <div class="modal-action">
+                <button class="btn btn-ghost" onclick="closeModal('deleteModal')">
+                    Atšaukti
+                </button>
+                <button class="btn btn-error" onclick="confirmDelete()">
+                    Ištrinti
+                </button>
+            </div>
+        </div>
+    </dialog>
+
+    <script src="api.js"></script>
+    <script>
+        let projects = [];
+        let projectToDelete = null;
+
+        // Initialize
+        window.addEventListener('DOMContentLoaded', function() {
+            checkAuth();
+            loadProjects();
+        });
+
+        async function checkAuth() {
+            if (!authAPI.isAuthenticated()) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            try {
+                const response = await authAPI.getCurrentUser();
+                document.getElementById('username').textContent = response.user.name || 'Vartotojas';
+            } catch (error) {
+                console.error('Auth check failed:', error);
+                await authAPI.logout();
+                window.location.href = 'index.html';
+            }
+        }
+
+        async function loadProjects() {
+            try {
+                const response = await projectsAPI.getProjects();
+                projects = response.projects || [];
+                renderProjects();
+            } catch (error) {
+                console.error('Failed to load projects:', error);
+                showToast('Nepavyko užkrauti projektų', 'error');
+                projects = [];
+                renderProjects();
+            }
+        }
+
+        function renderProjects() {
+            const grid = document.getElementById('projectsGrid');
+            const emptyState = document.getElementById('emptyState');
+            
+            if (projects.length === 0) {
+                grid.classList.add('hidden');
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            
+            grid.classList.remove('hidden');
+            emptyState.classList.add('hidden');
+            
+            grid.innerHTML = projects.map(project => `
+                <div class="card bg-base-100 shadow border border-base-300 hover:shadow-lg transition-shadow">
+                    <div class="card-body">
+                        <h3 class="card-title text-lg">${project.name}</h3>
+                        <div class="flex gap-2 mb-3">
+                            <div class="badge badge-outline badge-sm">${getTypeLabel(project.type)}</div>
+                            <div class="badge badge-outline badge-sm">${project.volume}m³</div>
+                        </div>
+                        <div class="text-sm text-base-content/60 mb-4">
+                            Sukurta: ${formatDate(project.created)}<br>
+                            Keista: ${formatDate(project.modified)}
+                        </div>
+                        <div class="card-actions justify-end">
+                            <div class="dropdown dropdown-end">
+                                <div tabindex="0" role="button" class="btn btn-ghost btn-sm">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
+                                    </svg>
+                                </div>
+                                <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-48">
+                                    <li><a onclick="openProject(${project.id})">Redaguoti</a></li>
+                                    <li><a onclick="duplicateProject(${project.id})">Dublikuoti</a></li>
+                                    <li><a onclick="deleteProject(${project.id})" class="text-error">Ištrinti</a></li>
+                                </ul>
+                            </div>
+                            <button class="btn btn-primary btn-sm" onclick="openProject(${project.id})">
+                                Redaguoti
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getTypeLabel(type) {
+            const labels = {
+                'vertical': 'Vertikalus',
+                'horizontal': 'Horizontalus', 
+                'spherical': 'Sferinis'
+            };
+            return labels[type] || type;
+        }
+
+        function formatDate(dateStr) {
+            return new Date(dateStr).toLocaleDateString('lt-LT');
+        }
+
+        function createNewProject() {
+            document.getElementById('newProjectModal').showModal();
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).close();
+        }
+
+        // Handle new project form with API
+        document.getElementById('newProjectForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('projectName').value;
+            const type = document.getElementById('tankType').value;
+            // const volume = parseFloat(document.getElementById('projectVolume').value);
+            
+            // Reset messages
+            document.getElementById('newProjectError').classList.add('hidden');
+            document.getElementById('newProjectSuccess').classList.add('hidden');
+            document.getElementById('newProjectSpinner').classList.remove('hidden');
+            document.getElementById('newProjectSubmitBtn').disabled = true;
+            
+            try {
+                const response = await projectsAPI.createProject({
+                    name,
+                    type,
+                    // volume,
+                    configuration: {}
+                });
+                
+                document.getElementById('newProjectSuccessText').textContent = response.message || 'Projektas sukurtas sėkmingai!';
+                document.getElementById('newProjectSuccess').classList.remove('hidden');
+                
+                // Reload projects
+                await loadProjects();
+                
+                // Close modal after a short delay
+                setTimeout(() => {
+                    closeModal('newProjectModal');
+                    document.getElementById('newProjectForm').reset();
+                }, 1500);
+            } catch (error) {
+                console.error('Create project error:', error);
+                document.getElementById('newProjectErrorText').textContent = error.message || 'Nepavyko sukurti projekto';
+                document.getElementById('newProjectError').classList.remove('hidden');
+            } finally {
+                document.getElementById('newProjectSpinner').classList.add('hidden');
+                document.getElementById('newProjectSubmitBtn').disabled = false;
+            }
+        });
+
+        function openProject(projectId) {
+            const project = projects.find(p => p.id === projectId);
+            if (project) {
+                // Store current project context
+                localStorage.setItem('currentProject', JSON.stringify(project));
+                window.location.href = 'configurator.html';
+            }
+        }
+
+        async function duplicateProject(projectId) {
+            const project = projects.find(p => p.id === projectId);
+            if (!project) return;
+            
+            const newName = project.name + ' (kopija)';
+            
+            try {
+                const response = await projectsAPI.duplicateProject(projectId, newName);
+                showToast(response.message || 'Projektas dubliuotas sėkmingai!', 'success');
+                
+                // Reload projects
+                await loadProjects();
+            } catch (error) {
+                console.error('Duplicate project error:', error);
+                showToast(error.message || 'Nepavyko dublikuoti projekto', 'error');
+            }
+        }
+
+        function deleteProject(projectId) {
+            const project = projects.find(p => p.id === projectId);
+            if (project) {
+                projectToDelete = projectId;
+                document.getElementById('deleteProjectName').textContent = project.name;
+                document.getElementById('deleteModal').showModal();
+            }
+        }
+
+        async function confirmDelete() {
+            if (!projectToDelete) return;
+            
+            try {
+                const response = await projectsAPI.deleteProject(projectToDelete);
+                showToast(response.message || 'Projektas ištrintas', 'success');
+                
+                closeModal('deleteModal');
+                projectToDelete = null;
+                
+                // Reload projects
+                await loadProjects();
+            } catch (error) {
+                console.error('Delete project error:', error);
+                showToast(error.message || 'Nepavyko ištrinti projekto', 'error');
+            }
+        }
+
+        async function logout() {
+            try {
+                await authAPI.logout();
+                window.location.href = 'index.html';
+            } catch (error) {
+                console.error('Logout error:', error);
+                window.location.href = 'index.html';
+            }
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast toast-top toast-end`;
+            toast.innerHTML = `
+                <div class="alert alert-${type === 'error' ? 'error' : type === 'success' ? 'success' : 'info'}">
+                    <span>${message}</span>
+                </div>
+            `;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

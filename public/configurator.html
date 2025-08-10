@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="lt" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Talpų konfigūratorius</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0ea5e4',
+                        'primary-content': '#ffffff',
+                        secondary: '#f3f4f6',
+                        accent: '#0ea5e4',
+                        neutral: '#374151',
+                        'base-100': '#ffffff',
+                        'base-200': '#f9fafb',
+                        'base-300': '#f3f4f6',
+                        'base-content': '#1f2937',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+        
+        #canvas-container canvas {
+            border-radius: 8px;
+        }
+        
+        .step-indicator {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .step-active {
+            background-color: #0ea5e4;
+            color: white;
+        }
+        
+        .step-completed {
+            background-color: #22c55e;
+            color: white;
+        }
+        
+        .step-inactive {
+            background-color: #f3f4f6;
+            color: #9ca3af;
+        }
+    </style>
+</head>
+<body class="bg-base-200 text-base-content min-h-screen">
+    <!-- Header -->
+    <div class="navbar bg-base-100 shadow-sm border-b border-base-300">
+        <div class="navbar-start">
+            <a href="dashboard.html" class="btn btn-ghost btn-sm">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+                Atgal
+            </a>
+            <div class="text-xl font-bold text-primary ml-4">
+                🏭 Talpų konfigūratorius
+            </div>
+        </div>
+        
+        <div class="navbar-center">
+            <span id="projectTitle" class="text-lg font-medium">Naujas projektas</span>
+        </div>
+        
+        <div class="navbar-end">
+            <div class="flex items-center gap-2">
+                <button class="btn btn-ghost btn-sm" onclick="saveProject()">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3-3m0 0l-3 3m3-3v12"></path>
+                    </svg>
+                    Išsaugoti
+                </button>
+                <button class="btn btn-ghost btn-sm" onclick="exportProject()">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    Eksportuoti
+                </button>
+                <span class="text-sm">Sveiki, <span id="username">Vartotojas</span></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex h-screen overflow-hidden">
+        <!-- Left Sidebar - Configuration Steps (60%) -->
+        <div class="w-3/5 bg-base-100 border-r border-base-300 overflow-y-auto">
+            <!-- Steps Navigation -->
+            <div class="p-6 border-b border-base-300 bg-base-50">
+                <h2 class="text-lg font-semibold mb-4">Konfigūravimo žingsniai</h2>
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center">
+                        <div class="step-indicator step-active" id="step1-indicator">1</div>
+                        <span class="ml-2 text-sm font-medium">Matmenys</span>
+                    </div>
+                    <div class="h-px bg-base-300 flex-1"></div>
+                    <div class="flex items-center">
+                        <div class="step-indicator step-inactive" id="step2-indicator">2</div>
+                        <span class="ml-2 text-sm text-base-content/60">Medžiagos</span>
+                    </div>
+                    <div class="h-px bg-base-300 flex-1"></div>
+                    <div class="flex items-center">
+                        <div class="step-indicator step-inactive" id="step3-indicator">3</div>
+                        <span class="ml-2 text-sm text-base-content/60">Komponentai</span>
+                    </div>
+                    <div class="h-px bg-base-300 flex-1"></div>
+                    <div class="flex items-center">
+                        <div class="step-indicator step-inactive" id="step4-indicator">4</div>
+                        <span class="ml-2 text-sm text-base-content/60">Ataskaita</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step Content -->
+            <div class="p-6">
+                <!-- Step 1: Dimensions -->
+                <div id="step1-content" class="step-content">
+                    <h3 class="text-xl font-semibold mb-6">Talpos matmenys</h3>
+                    
+                    <!-- Tank Type Selection -->
+                    <div class="mb-8">
+                        <label class="label">
+                            <span class="label-text font-medium">Talpos tipas</span>
+                        </label>
+                        <div class="grid grid-cols-3 gap-4">
+                            <label class="cursor-pointer">
+                                <input type="radio" name="tankType" value="vertical" class="hidden" checked onchange="updateTankType()">
+                                <div class="card bg-base-100 border-2 border-base-300 hover:border-primary transition-colors p-4 text-center tank-type-card active">
+                                    <div class="text-3xl mb-2">⬆️</div>
+                                    <div class="text-sm font-medium">Vertikalus</div>
+                                </div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="tankType" value="horizontal" class="hidden" onchange="updateTankType()">
+                                <div class="card bg-base-100 border-2 border-base-300 hover:border-primary transition-colors p-4 text-center tank-type-card">
+                                    <div class="text-3xl mb-2">↔️</div>
+                                    <div class="text-sm font-medium">Horizontalus</div>
+                                </div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="tankType" value="spherical" class="hidden" onchange="updateTankType()">
+                                <div class="card bg-base-100 border-2 border-base-300 hover:border-primary transition-colors p-4 text-center tank-type-card">
+                                    <div class="text-3xl mb-2">🔴</div>
+                                    <div class="text-sm font-medium">Sferinis</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Dimensions Form -->
+                    <div class="space-y-6">
+                        <div id="verticalDimensions" class="dimensions-form">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text">Aukštis (m)</span>
+                                    </label>
+                                    <input type="number" id="height" placeholder="10" step="0.1" min="0.1" 
+                                           class="input input-bordered" onchange="updateDimensions()">
+                                </div>
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text">Skersmuo (m)</span>
+                                    </label>
+                                    <input type="number" id="diameter" placeholder="5" step="0.1" min="0.1" 
+                                           class="input input-bordered" onchange="updateDimensions()">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="horizontalDimensions" class="dimensions-form hidden">
+                            <div class="grid grid-cols-3 gap-4">
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text">Ilgis (m)</span>
+                                    </label>
+                                    <input type="number" id="length" placeholder="10" step="0.1" min="0.1" 
+                                           class="input input-bordered" onchange="updateDimensions()">
+                                </div>
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text">Plotis (m)</span>
+                                    </label>
+                                    <input type="number" id="width" placeholder="3" step="0.1" min="0.1" 
+                                           class="input input-bordered" onchange="updateDimensions()">
+                                </div>
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text">Aukštis (m)</span>
+                                    </label>
+                                    <input type="number" id="height2" placeholder="2" step="0.1" min="0.1" 
+                                           class="input input-bordered" onchange="updateDimensions()">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="sphericalDimensions" class="dimensions-form hidden">
+                            <div class="form-control max-w-sm">
+                                <label class="label">
+                                    <span class="label-text">Skersmuo (m)</span>
+                                </label>
+                                <input type="number" id="sphereDiameter" placeholder="8" step="0.1" min="0.1" 
+                                       class="input input-bordered" onchange="updateDimensions()">
+                            </div>
+                        </div>
+
+                        <!-- Wall Thickness -->
+                        <div class="form-control max-w-sm">
+                            <label class="label">
+                                <span class="label-text">Sienelių storis (mm)</span>
+                            </label>
+                            <input type="number" id="wallThickness" placeholder="6" step="0.1" min="1" 
+                                   class="input input-bordered" onchange="updateDimensions()">
+                        </div>
+
+                        <!-- Calculated Volume -->
+                        <div class="bg-base-200 p-4 rounded-lg">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm font-medium">Apskaičiuotas tūris:</span>
+                                <span id="calculatedVolume" class="text-lg font-bold text-primary">0 m³</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Navigation Buttons -->
+                    <div class="flex justify-between mt-8 pt-6 border-t border-base-300">
+                        <button class="btn btn-ghost" onclick="goToDashboard()">
+                            Atšaukti
+                        </button>
+                        <button class="btn btn-primary" onclick="nextStep()">
+                            Toliau
+                            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Placeholder for other steps -->
+                <div id="step2-content" class="step-content hidden">
+                    <h3 class="text-xl font-semibold mb-6">Medžiagos ir dangos</h3>
+                    <p class="text-base-content/70">Medžiagų pasirinkimas - netrukus!</p>
+                </div>
+
+                <div id="step3-content" class="step-content hidden">
+                    <h3 class="text-xl font-semibold mb-6">Komponentai ir priedai</h3>
+                    <p class="text-base-content/70">Komponentų konfigūracija - netrukus!</p>
+                </div>
+
+                <div id="step4-content" class="step-content hidden">
+                    <h3 class="text-xl font-semibold mb-6">Ataskaita ir eksportas</h3>
+                    <p class="text-base-content/70">Galutinė ataskaita - netrukus!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side - 3D Viewer (40%) -->
+        <div class="w-2/5 bg-base-100 flex flex-col">
+            <!-- 3D Viewer Header -->
+            <div class="p-4 border-b border-base-300 bg-base-50">
+                <h3 class="text-lg font-semibold">3D peržiūra</h3>
+                <div class="flex gap-2 mt-2">
+                    <button class="btn btn-xs btn-outline" onclick="resetCamera()">Atkurti vaizdą</button>
+                    <button class="btn btn-xs btn-outline" onclick="toggleWireframe()">Tinklelis</button>
+                </div>
+            </div>
+
+            <!-- 3D Canvas Container -->
+            <div class="flex-1 p-4">
+                <div id="canvas-container" class="w-full h-full bg-base-200 rounded-lg flex items-center justify-center">
+                    <div id="loading" class="text-center">
+                        <div class="loading loading-spinner loading-lg text-primary mb-4"></div>
+                        <p class="text-base-content/70">Kraunama 3D peržiūra...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3D Controls Info -->
+            <div class="p-4 border-t border-base-300 bg-base-50">
+                <div class="text-xs text-base-content/60 space-y-1">
+                    <div>🖱️ Pelės ratas: artinti/tolinti</div>
+                    <div>🔄 Vilkti pele: sukti vaizdą</div>
+                    <div>⌨️ Shift + vilkti: slinkti</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="main.js"></script>
+    <script src="api.js"></script>
+    <script>
+        let currentStep = 1;
+        let currentProject = null;
+        let tankConfig = {
+            type: 'vertical',
+            height: 10,
+            diameter: 5,
+            length: 10,
+            width: 3,
+            height2: 2,
+            sphereDiameter: 8,
+            wallThickness: 6
+        };
+
+        // Initialize
+        window.addEventListener('DOMContentLoaded', function() {
+            checkAuth();
+            loadProject();
+            updateDimensions();
+        });
+
+        async function checkAuth() {
+            if (!authAPI.isAuthenticated()) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            try {
+                const response = await authAPI.getCurrentUser();
+                document.getElementById('username').textContent = response.user.name || 'Vartotojas';
+            } catch (error) {
+                console.error('Auth check failed:', error);
+                await authAPI.logout();
+                window.location.href = 'index.html';
+            }
+        }
+
+        function loadProject() {
+            const project = localStorage.getItem('currentProject');
+            if (project) {
+                try {
+                    currentProject = JSON.parse(project);
+                    document.getElementById('projectTitle').textContent = currentProject.name || 'Naujas projektas';
+                    
+                    // Load configuration if available
+                    if (currentProject.configuration && Object.keys(currentProject.configuration).length > 0) {
+                        tankConfig = { ...tankConfig, ...currentProject.configuration };
+                        
+                        // Update form fields
+                        updateFormFields();
+                    }
+                    
+                    // Set tank type if available
+                    if (currentProject.type) {
+                        tankConfig.type = currentProject.type;
+                        document.querySelector(`input[value="${currentProject.type}"]`).checked = true;
+                        updateTankType();
+                    }
+                } catch (e) {
+                    console.error('Invalid project data');
+                }
+            }
+        }
+
+        function updateFormFields() {
+            // Update dimension inputs based on tank type
+            const type = tankConfig.type;
+            
+            if (type === 'vertical') {
+                document.getElementById('height').value = tankConfig.height;
+                document.getElementById('diameter').value = tankConfig.diameter;
+            } else if (type === 'horizontal') {
+                document.getElementById('length').value = tankConfig.length;
+                document.getElementById('width').value = tankConfig.width;
+                document.getElementById('height2').value = tankConfig.height2;
+            } else if (type === 'spherical') {
+                document.getElementById('sphereDiameter').value = tankConfig.sphereDiameter;
+            }
+            
+            document.getElementById('wallThickness').value = tankConfig.wallThickness;
+        }
+
+        function updateTankType() {
+            const type = document.querySelector('input[name="tankType"]:checked').value;
+            tankConfig.type = type;
+            
+            // Update visual selection
+            document.querySelectorAll('.tank-type-card').forEach(card => card.classList.remove('active'));
+            event.target.closest('label').querySelector('.tank-type-card').classList.add('active');
+            
+            // Show/hide appropriate dimension forms
+            document.querySelectorAll('.dimensions-form').forEach(form => form.classList.add('hidden'));
+            document.getElementById(`${type}Dimensions`).classList.remove('hidden');
+            
+            updateDimensions();
+        }
+
+        function updateDimensions() {
+            // Get current values
+            const type = tankConfig.type;
+            
+            if (type === 'vertical') {
+                tankConfig.height = parseFloat(document.getElementById('height').value) || 10;
+                tankConfig.diameter = parseFloat(document.getElementById('diameter').value) || 5;
+            } else if (type === 'horizontal') {
+                tankConfig.length = parseFloat(document.getElementById('length').value) || 10;
+                tankConfig.width = parseFloat(document.getElementById('width').value) || 3;
+                tankConfig.height2 = parseFloat(document.getElementById('height2').value) || 2;
+            } else if (type === 'spherical') {
+                tankConfig.sphereDiameter = parseFloat(document.getElementById('sphereDiameter').value) || 8;
+            }
+            
+            tankConfig.wallThickness = parseFloat(document.getElementById('wallThickness').value) || 6;
+            
+            // Calculate volume
+            let volume = 0;
+            if (type === 'vertical') {
+                const radius = tankConfig.diameter / 2;
+                volume = Math.PI * radius * radius * tankConfig.height;
+            } else if (type === 'horizontal') {
+                volume = tankConfig.length * tankConfig.width * tankConfig.height2;
+            } else if (type === 'spherical') {
+                const radius = tankConfig.sphereDiameter / 2;
+                volume = (4/3) * Math.PI * radius * radius * radius;
+            }
+            
+            document.getElementById('calculatedVolume').textContent = volume.toFixed(2) + ' m³';
+            
+            // Update 3D view (will be implemented with Three.js)
+            if (window.updateTank3D) {
+                window.updateTank3D(tankConfig);
+            }
+        }
+
+        function nextStep() {
+            if (currentStep < 4) {
+                currentStep++;
+                showStep(currentStep);
+            }
+        }
+
+        function showStep(step) {
+            // Hide all step content
+            document.querySelectorAll('.step-content').forEach(content => content.classList.add('hidden'));
+            
+            // Show current step content
+            document.getElementById(`step${step}-content`).classList.remove('hidden');
+            
+            // Update step indicators
+            for (let i = 1; i <= 4; i++) {
+                const indicator = document.getElementById(`step${i}-indicator`);
+                if (i < step) {
+                    indicator.className = 'step-indicator step-completed';
+                } else if (i === step) {
+                    indicator.className = 'step-indicator step-active';
+                } else {
+                    indicator.className = 'step-indicator step-inactive';
+                }
+            }
+        }
+
+        function goToDashboard() {
+            window.location.href = 'dashboard.html';
+        }
+
+        async function saveProject() {
+            if (!currentProject) {
+                showToast('Klaida: projektas nerastas', 'error');
+                return;
+            }
+
+            try {
+                const response = await projectsAPI.updateProject(currentProject.id, {
+                    name: currentProject.name,
+                    type: tankConfig.type,
+                    volume: parseFloat(document.getElementById('calculatedVolume').textContent) || 0,
+                    configuration: tankConfig
+                });
+                
+                showToast(response.message || 'Projektas išsaugotas!', 'success');
+                
+                // Update current project with new data
+                currentProject = response.project;
+                localStorage.setItem('currentProject', JSON.stringify(currentProject));
+            } catch (error) {
+                console.error('Save project error:', error);
+                showToast(error.message || 'Nepavyko išsaugoti projekto', 'error');
+            }
+        }
+
+        function exportProject() {
+            showToast('Eksportavimas - netrukus!', 'info');
+        }
+
+        function resetCamera() {
+            if (window.resetCamera3D) {
+                window.resetCamera3D();
+            }
+        }
+
+        function toggleWireframe() {
+            if (window.toggleWireframe3D) {
+                window.toggleWireframe3D();
+            }
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast toast-top toast-end`;
+            toast.innerHTML = `
+                <div class="alert alert-${type === 'error' ? 'error' : type === 'success' ? 'success' : 'info'}">
+                    <span>${message}</span>
+                </div>
+            `;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        // Auto-save functionality
+        let saveTimeout;
+        function autoSave() {
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(async () => {
+                if (currentProject) {
+                    try {
+                        await saveProject();
+                        console.log('Auto-saved project');
+                    } catch (error) {
+                        console.error('Auto-save failed:', error);
+                    }
+                }
+            }, 2000); // Auto-save after 2 seconds of inactivity
+        }
+
+        // Add auto-save to dimension changes
+        const originalUpdateDimensions = updateDimensions;
+        updateDimensions = function() {
+            originalUpdateDimensions();
+            autoSave();
+        };
+
+        // Make functions available globally for Three.js integration
+        window.tankConfig = tankConfig;
+        window.updateDimensions = updateDimensions;
+    </script>
+</body>
+</html>

@@ -1,0 +1,54 @@
+{
+  "name": "3d-tank-configurator",
+  "version": "1.0.0",
+  "description": "3D Tank Configurator su Three.js ir Express backend",
+  "main": "dist/main.js",
+  "type": "module",
+  "scripts": {
+    "dev": "npm run setup && concurrently \"npm run dev:backend\" \"npm run dev:frontend\" \"npm run dev:css\"",
+    "setup": "npm run install:all && npm run build-css",
+    "install:all": "npm install && cd server && npm install",
+    "dev:backend": "cd server && npm run dev",
+    "dev:frontend": "npx http-server public -p 3000 -c-1 --cors",
+    "dev:css": "npx tailwindcss -i ./public/styles.css -o ./public/output.css --watch",
+    "build": "npm run build:frontend && npm run build:backend",
+    "build:frontend": "npm run build-css && tsc",
+    "build:backend": "cd server && npm run build",
+    "build-css": "npx tailwindcss -i ./public/styles.css -o ./public/output.css",
+    "start": "npm run build && concurrently \"npm run start:backend\" \"npm run start:frontend\"",
+    "start:backend": "cd server && npm start",
+    "start:frontend": "npx http-server public -p 3000",
+    "test": "echo \"No tests specified\"",
+    "clean": "rm -rf dist && cd server && npm run clean"
+  },
+  "keywords": [
+    "3d",
+    "tank",
+    "configurator",
+    "threejs",
+    "typescript",
+    "express",
+    "sqlite"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@tailwindcss/typography": "^0.5.16",
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.4.1",
+    "@types/three": "^0.167.1",
+    "express": "^4.19.2",
+    "nodemon": "^3.1.4",
+    "tailwindcss": "^3.4.17",
+    "three": "^0.167.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.2"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.21",
+    "concurrently": "^8.2.2",
+    "daisyui": "^5.0.50",
+    "http-server": "^14.1.1",
+    "postcss": "^8.5.6"
+  }
+}
