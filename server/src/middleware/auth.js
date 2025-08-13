@@ -52,7 +52,9 @@ export const generateToken = (userId) => {
 export const createSession = async (userId, token) => {
   const db = await getDB();
   const expiresAt = new Date();
-  expiresAt.setDate(expiresAt.getDate() + 7); // 7 days
+  // Session duration in days from environment, defaulting to 7
+  const sessionDays = parseInt(process.env.SESSION_EXPIRE_DAYS, 10) || 7;
+  expiresAt.setDate(expiresAt.getDate() + sessionDays);
 
   await db.run(
     'INSERT INTO user_sessions (user_id, token_hash, expires_at) VALUES (?, ?, ?)',

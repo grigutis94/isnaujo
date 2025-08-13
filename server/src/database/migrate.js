@@ -1,4 +1,5 @@
 import { getDB } from './db.js';
+import bcrypt from 'bcryptjs';
 
 const createTables = async () => {
   try {
@@ -43,6 +44,18 @@ const createTables = async () => {
         FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
       )
     `);
+    // Seed default admin user if not exists
+    const existingAdmin = await db.get(
+      'SELECT * FROM users WHERE name = ?', ['admin']
+    );
+    if (!existingAdmin) {
+      const hashedPass = await bcrypt.hash('admin', 12);
+      await db.run(
+        'INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)',
+        ['admin', 'admin', hashedPass, 'admin']
+      );
+      console.log('Default admin user created');
+    }
 
     console.log('✅ Database tables created successfully');
   } catch (error) {

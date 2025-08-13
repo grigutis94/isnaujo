@@ -128,26 +128,19 @@
                         <label class="label">
                             <span class="label-text font-medium">Talpos tipas</span>
                         </label>
-                        <div class="grid grid-cols-3 gap-4">
+                        <div class="grid grid-cols-2 gap-4">
                             <label class="cursor-pointer">
                                 <input type="radio" name="tankType" value="vertical" class="hidden" checked onchange="updateTankType()">
                                 <div class="card bg-base-100 border-2 border-base-300 hover:border-primary transition-colors p-4 text-center tank-type-card active">
                                     <div class="text-3xl mb-2">⬆️</div>
-                                    <div class="text-sm font-medium">Vertikalus</div>
+                                    <div class="text-sm font-medium">Cilindrinis</div>
                                 </div>
                             </label>
                             <label class="cursor-pointer">
                                 <input type="radio" name="tankType" value="horizontal" class="hidden" onchange="updateTankType()">
                                 <div class="card bg-base-100 border-2 border-base-300 hover:border-primary transition-colors p-4 text-center tank-type-card">
                                     <div class="text-3xl mb-2">↔️</div>
-                                    <div class="text-sm font-medium">Horizontalus</div>
-                                </div>
-                            </label>
-                            <label class="cursor-pointer">
-                                <input type="radio" name="tankType" value="spherical" class="hidden" onchange="updateTankType()">
-                                <div class="card bg-base-100 border-2 border-base-300 hover:border-primary transition-colors p-4 text-center tank-type-card">
-                                    <div class="text-3xl mb-2">🔴</div>
-                                    <div class="text-sm font-medium">Sferinis</div>
+                                    <div class="text-sm font-medium">Stačiakampis</div>
                                 </div>
                             </label>
                         </div>
@@ -245,12 +238,113 @@
                 <!-- Placeholder for other steps -->
                 <div id="step2-content" class="step-content hidden">
                     <h3 class="text-xl font-semibold mb-6">Medžiagos ir dangos</h3>
-                    <p class="text-base-content/70">Medžiagų pasirinkimas - netrukus!</p>
+                    <!-- Shell material options -->
+                    <div class="mb-6">
+                        <p class="text-base-content/70 mb-2">Pasirinkite apvalkalo medžiagą:</p>
+                        <div class="grid grid-cols-3 gap-4">
+                            <label class="cursor-pointer">
+                                <input type="radio" name="shellMaterial" value="S235" class="hidden" onchange="updateMaterial('shell','S235')">
+                                <div class="card p-4 text-center">S235</div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="shellMaterial" value="S355" class="hidden" onchange="updateMaterial('shell','S355')">
+                                <div class="card p-4 text-center">S355</div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="shellMaterial" value="S316L" class="hidden" onchange="updateMaterial('shell','S316L')">
+                                <div class="card p-4 text-center">S316L</div>
+                            </label>
+                        </div>
+                    </div>
+                    <!-- Coating options -->
+                    <div class="mb-6">
+                        <p class="text-base-content/70 mb-2">Pasirinkite dangos tipą:</p>
+                        <div class="grid grid-cols-3 gap-4">
+                            <label class="cursor-pointer">
+                                <input type="radio" name="coatingType" value="paint" class="hidden" onchange="updateMaterial('coating','paint')">
+                                <div class="card p-4 text-center">Dažai</div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="coatingType" value="galvanize" class="hidden" onchange="updateMaterial('coating','galvanize')">
+                                <div class="card p-4 text-center">Cinkavimas</div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="coatingType" value="none" class="hidden" onchange="updateMaterial('coating','none')">
+                                <div class="card p-4 text-center">Be dangos</div>
+                            </label>
+                        </div>
+                    </div>
+                    <!-- Navigation Buttons -->
+                    <div class="flex justify-between mt-8 pt-6 border-t border-base-300">
+                        <button class="btn btn-ghost" onclick="prevStep()">
+                            <!-- Left arrow -->
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                            </svg>
+                            Atgal
+                        </button>
+                        <button class="btn btn-primary" onclick="nextStep()">
+                            Toliau
+                            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
 
-                <div id="step3-content" class="step-content hidden">
-                    <h3 class="text-xl font-semibold mb-6">Komponentai ir priedai</h3>
-                    <p class="text-base-content/70">Komponentų konfigūracija - netrukus!</p>
+                <div id="step2-content" class="step-content hidden">
+                    <h3 class="text-xl font-semibold mb-6">Medžiagos ir dangos</h3>
+                    <!-- Shell material options -->
+                    <div class="mb-6">
+                        <p class="text-base-content/70 mb-2">Pasirinkite apvalkalo medžiagą:</p>
+                        <div class="grid grid-cols-3 gap-4">
+                            <label class="cursor-pointer">
+                                <input type="radio" name="shellMaterial" value="S235" class="hidden" onchange="updateMaterial('shell', 'S235')">
+                                <div class="card bg-base-100 border border-base-300 p-4 text-center">S235</div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="shellMaterial" value="S355" class="hidden" onchange="updateMaterial('shell', 'S355')">
+                                <div class="card bg-base-100 border border-base-300 p-4 text-center">S355</div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="shellMaterial" value="S316L" class="hidden" onchange="updateMaterial('shell', 'S316L')">
+                                <div class="card bg-base-100 border border-base-300 p-4 text-center">S316L</div>
+                            </label>
+                        </div>
+                    </div>
+                    <!-- Coating options -->
+                    <div class="mb-6">
+                        <p class="text-base-content/70 mb-2">Pasirinkite dangos tipą:</p>
+                        <div class="grid grid-cols-3 gap-4">
+                            <label class="cursor-pointer">
+                                <input type="radio" name="coatingType" value="paint" class="hidden" onchange="updateMaterial('coating', 'paint')">
+                                <div class="card bg-base-100 border border-base-300 p-4 text-center">Dažai</div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="coatingType" value="galvanize" class="hidden" onchange="updateMaterial('coating', 'galvanize')">
+                                <div class="card bg-base-100 border border-base-300 p-4 text-center">Cinkavimas</div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="coatingType" value="none" class="hidden" onchange="updateMaterial('coating', 'none')">
+                                <div class="card bg-base-100 border border-base-300 p-4 text-center">Be dangos</div>
+                            </label>
+                        </div>
+                    </div>
+                    <!-- Navigation Buttons -->
+                    <div class="flex justify-between mt-8 pt-6 border-t border-base-300">
+                        <button class="btn btn-ghost" onclick="prevStep()">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                            </svg>
+                            Atgal
+                        </button>
+                        <button class="btn btn-primary" onclick="nextStep()">
+                            Toliau
+                            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
 
                 <div id="step4-content" class="step-content hidden">
@@ -314,7 +408,6 @@
             length: 10,
             width: 3,
             height2: 2,
-            sphereDiameter: 8,
             wallThickness: 6
         };
 
@@ -433,9 +526,6 @@
                     case 'horizontal':
                         tankMesh = this.createHorizontalTank(material);
                         break;
-                    case 'spherical':
-                        tankMesh = this.createSphericalTank(material);
-                        break;
                     default:
                         tankMesh = this.createVerticalTank(material);
                 }
@@ -468,13 +558,6 @@
                 return mesh;
             }
 
-            createSphericalTank(material) {
-                const radius = tankConfig.sphereDiameter / 2;
-                const geometry = new THREE.SphereGeometry(radius, 32, 16);
-                const mesh = new THREE.Mesh(geometry, material);
-                mesh.position.y = radius;
-                return mesh;
-            }
 
             setupMouseControls() {
                 let isMouseDown = false;
@@ -789,6 +872,20 @@
                 currentStep++;
                 showStep(currentStep);
             }
+                    function prevStep() {
+                        if (currentStep > 1) {
+                            currentStep--;
+                            showStep(currentStep);
+                        }
+                    }
+
+                    function updateMaterial(type, value) {
+                        // Save material choice to config
+                        if (!tankConfig.materials) tankConfig.materials = {};
+                        tankConfig.materials[type] = value;
+                        // Optionally update 3D preview
+                        if (window.updateTank3D) window.updateTank3D(tankConfig);
+                    }
         }
 
         function showStep(step) {
